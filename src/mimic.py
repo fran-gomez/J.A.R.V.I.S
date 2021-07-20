@@ -1,37 +1,47 @@
 import subprocess
 
+def cmd (cmdAndArgs, return_output = False):
+	cmdProcess = subprocess.run(cmdAndArgs, capture_output = return_output)
+
+	return str(cmdProcess.stdout)
+
 class mimic:
 
 	def __init__(self):
 		self.mimicVoicesDir = "../mimic_voices/"
+		self.updateListsOfVoices()
+		self.setVoice(self.allMimicVoices[1])
+
+	def updateListsOfVoices(self):
 		self.mimicNativeVoices = self.listNativeVoices()
 		self.mimicDirVoices = self.listDirVoices()
-		self.allMimicVoices = self.listAllMimicVoices()
-		self.voice = self.allMimicVoices[1]
+		self.allMimicVoices = self.mimicNativeVoices + self.mimicDirVoices
 
 	def say(self, words):
-		subprocess.run(["mimic", "-t", words, "-voice", self.voice])
+		if self.nativeVoice:
+			cmd(["mimic", "-t", words, "-voice", self.voice])
+		else:
+			cmd(["mimic", "-t", words, "-voice", self.mimicVoicesDir + self.voice])
 
 	def listDirVoices(self):
-		listDirVoicesProcess = subprocess.run(["ls", self.mimicVoicesDir], capture_output = True)
-		listDir = str(listDirVoicesProcess.stdout)[2:-3]
+		# Clean output of the ls command
+		listDir = cmd(["ls", self.mimicVoicesDir], True)[2:-3]
 
+		# Convert the ls output to a list
 		dirVoicesList = listDir.split("\\n")
 
 		return dirVoicesList
 
 	def listNativeVoices(self):
-		listNativeVoicesProcess = subprocess.run(["mimic", "-lv"], capture_output = True)
-		voices = str(listNativeVoicesProcess.stdout)[2:-1]
+		# Clean output of the command
+		voices = cmd(["mimic", "-lv"], True)[2:-1]
 
 		endVoicesString = voices.find("\\")-1
 
+		# Erase the fist part of the output and convert it to a list
 		nativeVoicesList = voices[18:endVoicesString].split(" ")
 
 		return nativeVoicesList
-
-	def listAllMimicVoices(self):
-		return self.listNativeVoices() + self.listDirVoices()
 
 	def isNativeVoice(self, voice):
 		isNativeVoice = False
@@ -41,5 +51,6 @@ class mimic:
 
 		return isNativeVoice
 
-engine = mimic()
-engine.say("Hello")
+	def setVoice(self, voice):
+		self.voice = voice
+		self.nativeVoice = self.isNativeVoice(self.voice)
