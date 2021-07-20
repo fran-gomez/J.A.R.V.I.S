@@ -10,7 +10,7 @@ class mimic:
 	def __init__(self):
 		self.mimicVoicesDir = "../mimic_voices/"
 		self.updateListsOfVoices()
-		self.setVoice(self.allMimicVoices[1])
+		self.setVoice('cmu_us_clb.flitevox')
 
 	def updateListsOfVoices(self):
 		self.mimicNativeVoices = self.listNativeVoices()
