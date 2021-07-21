@@ -40,6 +40,3 @@ class Weather:
         speak.speak(report)
 
         return report
-
-
-Weather.get_weather_report()

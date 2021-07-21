@@ -8,7 +8,7 @@ def cmd (cmdAndArgs, return_output = False):
 class mimic:
 
 	def __init__(self):
-		self.mimicVoicesDir = "../mimic_voices/"
+		self.mimicVoicesDir = "../data/mimic_voices/"
 		self.updateListsOfVoices()
 		self.setVoice('cmu_us_clb.flitevox')
 
