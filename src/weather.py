@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 
 import requests
-import mimic
+# import mimic
 import json
 import datetime
 
@@ -9,153 +9,157 @@ import datetime
 # https://www.meteored.com.ar/documentacion_api/es/Metadata_latam.pdf
 
 class Weather:
+    
+    API_KEY = "e8db9e21c8c3494bda08cdc02e4f99f3"
+
     def __init__(self):
-        self.requestWeatherAPI()
-        self.unitsStr = {'°C': 'degree Celsius',
-                         '°C(p)': 'degrees Celsius',
-                         '°F': 'degree Fahrenheit',
-                         '°F(p)': 'degrees Fahrenheit',
-                         'km/h': 'kilometer per hour',
-                         'km/h(p)': 'kilometers per hour',
-                         'mph': 'mile per hour',
-                         'mph(p)': 'miles per hour',
-                         'mm': 'millimeter',
-                         'mm(p)': 'millimeters',
-                         'in': 'inch',
-                         'in(p)': 'inches',
-                         'mb': 'milibar',
-                         'mb(p)': 'milibars',
-                         'm': 'meter',
-                         'm(p)': 'meters',
-                        }
+        self.currentWeather = None
+        self.__updateWeather()
+        self.weatherForecast = None
+        self.__updateForecast()
+        self.cityName = self.currentWeather['name']
 
-    # @brief Emite el reporte extendido del clima a 5 dias
-    # @requires Conexion a internet
-    # @returns Temperatura, presion, humedad y viento para los proximos 5 dias en una determinada cuidad
-    def requestWeatherAPI(self):
-        API_URL = 'http://api.meteored.com.ar/index.php?api_lang=en&localidad=16884&affiliate_id=4s8w6nd9wumv&v=3.0'
+    def __updateWeather(self):
+        API_URL = f"http://api.openweathermap.org/data/2.5/weather?id=3865086&units=metric&lang=us&appid={self.API_KEY}"
 
-        self.weatherForecast = requests.get(API_URL).json()
-        self.cityName = self.weatherForecast['location'][0:12]
-        self.units = self.weatherForecast['day']['1']['units']
-
-    def calculateHourIndex(self, hour):
-
-        index = None
-
-        if hour == 'now':
-            index = datetime.datetime.now().hour//3
-        else:
-            index = int(hour)//3
-
-        return index
-
-    def getPluralOrSingularUnit(self, number, unit):
-
-        if number != 1:
-            unit += '(p)'
-
-        return unit
-
-    def getTimeString(self, day, hour = None):
-
-        timeStr = None
-
-        if not hour == 'now':
-
-            if day == '1':
-                timeStr = 'today'
-            elif day == '2':
-                timeStr = 'tomorrow'
+        if not self.currentWeather or ((datetime.datetime.now() - self.currentWeatherUpdate).seconds > 3600):
+            request = requests.get(API_URL)
+            if request.status_code == 200:
+                self.currentWeatherUpdate = datetime.datetime.now()
+                self.currentWeather = request.json()
             else:
-                timeStr = f'on {self.weatherForecast["day"][day]["name"]}'
+                print(f"Cannot update {request.status_code}")
+    
+    def __updateForecast(self):
+        API_URL = f"http://api.openweathermap.org/data/2.5/onecall?exclude=minutely,hourly,alerts&lat=-38.7196&lon=-62.2724&lang=us&units=metric&cnt=7&appid={self.API_KEY}"
 
-            if hour != None:
-                timeStr += ' at {hour} o\'clock'
+        if not self.weatherForecast or ((datetime.datetime.now() - self.weatherForecastUpdate).seconds > 3600):
+            request = requests.get(API_URL)
+            if request.status_code == 200:
+                self.currentWeatherUpdate = datetime.datetime.now()
+                self.weatherForecast = request.json()
+            else:
+                print(f"Cannot update {request.status_code}")
 
+    def getTemperature(self, day = 0):
+
+        if (day == 0):
+            self.__updateWeather()
+            temperature = int(self.currentWeather['main']['temp'])
+            feelsLike = int(self.currentWeather['main']['feels_like'])
         else:
-            timeStr = hour
+            return "You cant get the current temperature of tomorrow, you ass"
+        
+        temperatureUnit = "degrees celsius" if temperature > 1 else "degree celsius"
 
-        return timeStr
+        temperatueStr = f'For {self.cityName}, the temperature is {temperature} {temperatureUnit} and feels like {feelsLike} {temperatureUnit}.'
 
-    def getTemperature(self, day = '1', hour = 'now'):
+        return temperatueStr
 
-        temperature = int(self.weatherForecast['day'][day]['hour'][self.calculateHourIndex(hour)]['temp'])
+    def getMinMaxTemperature(self, day = 0):
 
-        temperatureUnit = self.strUnits[self.getPluraOrSingularUnit(temperature, self.units['temp'])]
+        if day == 0:
+            self.__updateWeather()
+            minTemp = int(self.currentWeather['main']['temp_min'])
+            maxTemp = int(self.currentWeather['main']['temp_max'])
+        else:
+            self.__updateForecast()
+            count = self.weatherForecast['cnt']
+            if day < count:
+                minTemp = int(self.weatherForecast['dialy'][day+1]['temp']['min'])
+                maxTemp = int(self.weatherForecast['dialy'][day+1]['temp']['max'])
+            else:
+                return "Day out of range"
 
-        temperatueStr = f'For {self.cityName}, {self.getTimeString(day, hour)}, the temperature is {temperature} {temperatureUnit}.'
+        minTempUnit = "degrees celsius" if minTemp > 1 else "degree celsius"
+        maxTempUnit = "degrees celsius" if maxTemp > 1 else "degree celsius"
 
-        return temperatureStr
-
-    def getMaxMinTemperature(self, day = '1'):
-
-        minTemp = int(self.weatherForecast['day'][day]['tempmin'])
-        maxTemp = int(self.weatherForecast['day'][day]['tempmax'])
-
-        minTempUnit = self.strUnits[self.getPluraOrSingularUnit(minTemp, self.units['temp'])]
-        maxTempUnit = self.strUnits[self.getPluraOrSingularUnit(maxTemp, self.units['temp'])]
-
-        minMaxTempStr = f'For {self.cityName}, {self.getTimeString(day)}, the minimum temperature is {minTemp} {minTempUnit} and the maximum temperature is {maxTemp} {maxTempUnit}.'
+        minMaxTempStr = f'For {self.cityName}, the minimum temperature is {minTemp} {minTempUnit} and the maximum temperature is {maxTemp} {maxTempUnit}.'
 
         return minMaxTempStr
 
-    def getWindData(self, day = '1', hour = 'now'):
+    def getWindData(self, day = 0):
+        compass_brackets = ["North", "North East", "East", "South East", "South", "South West", "West", "North West", "Notrh"]
 
-        windSpeed, windGusts = None
-
-        if hour == None:
-            windSpeed = self.weatherForecast['day'][day]['wind']['speed']
-            windGusts = self.weatherForecast['day'][day]['wind']['gusts']
+        if day == 0:
+            self.__updateWeather()
+            windSpeed = self.currentWeather['wind']['speed']
+            windDirection = compass_brackets[round(self.currentWeather['wind']['deg']/45)]
         else:
-            windSpeed = self.weatherForecast['day'][day]['hour'][self.calculateHourIndex(hour)]['wind']['speed']
-            windGusts = self.weatherForecast['day'][day]['hour'][self.calculateHourIndex(hour)]['wind']['gusts']
+            self.__updateForecast()
+            count = self.weatherForecast['cnt']
+            if day < count:
+                windSpeed = self.weatherForecast['dialy'][day]['speed']
+                windDirection = compass_brackets[round(self.weatherForecast['dialy'][day]['deg']/45)]
+            else:
+                return "Day out of range"
 
-        windSpeedUnit = self.strUnits[self.getPluralOrSingularUnit(windSpeed, self.units['wind'])]
-        windGustsUnit = self.strUnits[self.getPluralOrSingularUnit(windGusts, self.units['wind'])]
+        windSpeedUnit = "kilometers per hour" if windSpeed > 1 else "kilometer per hour"
 
-        windStr = f'For {self.cityName}, {self.getTimeString(day)}, the wind avarage speed is {windSpeed} {windSpeedUnit} and there are gusts of {windGusts} {windGustsUnit}.'
+        windStr = f'For {self.cityName}, the wind avarage speed is {windSpeed} {windSpeedUnit} from {windDirection}.'
 
         return windStr
 
-    def getRain(self, day = '1', hour = 'now'):
+    def getRain(self, day = 0):
 
-        rain = None
-
-        if hour == None:
-            rain = self.weatherForecast['day'][day]['rain']
+        if day == 0:
+            return "Not yet supported by API"
         else:
-            rain = self.weatherForecast['day'][day]['hour'][self.calculateHourIndex(hour)]['rain']
+            self.__updateForecast()
+            count = self.weatherForecast['cnt']
+            if day < count:
+                rainProbability = self.weatherForecast['dialy'][day]['pop'] * 100
+            else:
+                return "Day out of range"
 
-        rainUnit = self.strUnits[self.getPluralOrSingularUnit(rain, self.units['rain'])]
+        rainUnit = "percent"
 
-        rainStr = f'For {self.cityName}, {self.getTimeString(day)}, the rain level is {rain} {rainUnit}.'
+        rainStr = f'For {self.cityName}, the rain chance is {rainProbability} {rainUnit}.'
 
         return rainStr
 
-    def getPressure(self, day = '1', hour = 'now'):
+    def getPressure(self, day = 0):
 
-        pressure = None
-
-        if hour == None:
-            pressure = self.weatherForecast['day'][day]['pressure']
+        if day == 0:
+            self.__updateWeather()
+            pressure = self.currentWeather['main']['pressure']
         else:
-            pressure = self.weatherForecast['day'][day]['hour'][self.calculateHourIndex(hour)]['pressure']
+            self.__updateForecast()
+            count = self.weatherForecast['cnt']
+            if day < count:
+                pressure = self.weatherForecast['dialy'][day]['pressure']
+            else:
+                return "Day out of range"
 
-        pressureUnit = self.strUnits[self.getPluralOrSingularUnit(pressure, self.units['pressure'])]
+        pressureUnit = "hectopascals" if pressure > 1 else "hectopascal"
 
-        pressureStr = f'For {self.cityName}, {self.getTimeString(day)}, the pressure is {pressure} {pressureUnit}'
+        pressureStr = f'For {self.cityName}, the pressure is {pressure} {pressureUnit}'
 
         return pressureStr
 
-    def getHumidity(self, day = '1', hour = 'now'):
-        pass
+    def getHumidity(self, day = 0):
 
-engine = mimic.mimic()
-#engine.say()
+        if day == 0:
+            self.__updateWeather()
+            humidity = self.currentWeather['main']['humidity']
+        else:
+            self.__updateForecast()
+            count = self.weatherForecast['cnt']
+            if day < count:
+                humidity = self.weatherForecast['dialy'][day]['humidity']
+            else:
+                return "Day out of range"
+
+        humidityUnit = "percent"
+
+        humidityStr = f'For {self.cityName}, the humidity is {humidity} {humidityUnit}'
+
+        return humidityStr
 
 weather = Weather()
-
-print(json.dumps(weather.weatherForecast, indent=4))
-
-#print(weather.units)
+print(weather.getTemperature())
+print(weather.getMinMaxTemperature())
+print(weather.getWindData())
+print(weather.getPressure())
+print(weather.getHumidity())
+print(weather.getRain())
