@@ -36,7 +36,7 @@ class Weather:
         if not self.weatherForecast or ((datetime.datetime.now() - self.weatherForecastUpdate).seconds > 3600):
             request = requests.get(API_URL)
             if request.status_code == 200:
-                self.currentWeatherUpdate = datetime.datetime.now()
+                self.weatherForecastUpdate = datetime.datetime.now()
                 self.weatherForecast = request.json()
             else:
                 print(f"Cannot update {request.status_code}")
@@ -66,8 +66,8 @@ class Weather:
             self.__updateForecast()
             count = self.weatherForecast['cnt']
             if day < count:
-                minTemp = int(self.weatherForecast['dialy'][day+1]['temp']['min'])
-                maxTemp = int(self.weatherForecast['dialy'][day+1]['temp']['max'])
+                minTemp = int(self.weatherForecast['daily'][day+1]['temp']['min'])
+                maxTemp = int(self.weatherForecast['daily'][day+1]['temp']['max'])
             else:
                 return "Day out of range"
 
@@ -89,8 +89,8 @@ class Weather:
             self.__updateForecast()
             count = self.weatherForecast['cnt']
             if day < count:
-                windSpeed = self.weatherForecast['dialy'][day]['speed']
-                windDirection = compass_brackets[round(self.weatherForecast['dialy'][day]['deg']/45)]
+                windSpeed = self.weatherForecast['daily'][day]['speed']
+                windDirection = compass_brackets[round(self.weatherForecast['daily'][day]['deg']/45)]
             else:
                 return "Day out of range"
 
@@ -106,9 +106,9 @@ class Weather:
             return "Not yet supported by API"
         else:
             self.__updateForecast()
-            count = self.weatherForecast['cnt']
+            count = 7
             if day < count:
-                rainProbability = self.weatherForecast['dialy'][day]['pop'] * 100
+                rainProbability = self.weatherForecast['daily'][day]['pop'] * 100
             else:
                 return "Day out of range"
 
@@ -127,7 +127,7 @@ class Weather:
             self.__updateForecast()
             count = self.weatherForecast['cnt']
             if day < count:
-                pressure = self.weatherForecast['dialy'][day]['pressure']
+                pressure = self.weatherForecast['daily'][day]['pressure']
             else:
                 return "Day out of range"
 
@@ -146,7 +146,7 @@ class Weather:
             self.__updateForecast()
             count = self.weatherForecast['cnt']
             if day < count:
-                humidity = self.weatherForecast['dialy'][day]['humidity']
+                humidity = self.weatherForecast['daily'][day]['humidity']
             else:
                 return "Day out of range"
 
@@ -162,4 +162,4 @@ print(weather.getMinMaxTemperature())
 print(weather.getWindData())
 print(weather.getPressure())
 print(weather.getHumidity())
-print(weather.getRain())
+print(weather.getRain(day = 2))
