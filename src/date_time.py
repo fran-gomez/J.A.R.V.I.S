@@ -1,31 +1,34 @@
 # -*- encoding: utf-8 -*-
 
-import datetime
+from datetime import datetime
 
 class DateTime:
 
-    def __init__(self) -> None:
+    def __init__(self):
         pass
 
-    def date():
-        fields = datetime.date.today().strftime("%A %B %d").split(' ')
+    def dateToStr(self, date):
+        dateStr = date.strftime("%A, %B %d")
 
-        date = f'Today is {fields[0]}, {fields[1]} {fields[2]}'
+        return dateStr
 
-        return date
+    def timeToStr(self, time):
+        hour = time.hour
+        min = time.minute
+        timeStr = ''
 
-    def time():
-        str = datetime.datetime.now().strftime("%I %M").split(' ')
-        hour = int(str[0])
-        min = int(str[1])
-
-        time = f'It\'s '
         if min == 0:
-            time += f'{hour} oh clock'
+            timeStr += f'{hour} oh clock'
         elif 0 < min <= 30:
-            time += f'{min} past {hour}'
+            timeStr += f'{min} past {hour}'
         elif 30 < min <= 59:
             remains = 60-min
-            time += f'{remains} to {hour+1}'
+            timeStr += f'{remains} to {hour+1}'
 
-        return time
+        return timeStr
+
+    def todayStr(self):
+        return 'Today is ' + self.dateToStr(datetime.today())
+
+    def nowStr(self):
+        return 'It\'s ' + self.timeToStr(datetime.now())
