@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-class DateTime:
+class dateManager:
 
     def __init__(self):
         pass
@@ -27,8 +27,14 @@ class DateTime:
 
         return timeStr
 
+    def datetimeToStr(self, datetimeObj):
+        return self.dateToStr(datetimeObj) + ' at ' + self.timeToStr(datetimeObj)
+
     def todayStr(self):
         return 'Today is ' + self.dateToStr(datetime.today())
 
     def nowStr(self):
         return 'It\'s ' + self.timeToStr(datetime.now())
+
+motor = dateManager()
+print(motor.datetimeToStr(datetime.now()))
