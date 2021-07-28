@@ -43,9 +43,9 @@ class eventManager():
     def addLoadedEvent(self, title, date, description, noticeTimeGap):
         self.events.append(event(title, datetime(*date), description, noticeTimeGap))
 
-    # noticeTimeGap recibe una lista de este tipo: [semanas, días, horas, minutos]
-    def addNewEvent(self, title, date, description = None, noticeTimeGap = [0, 0, 0, 15]):
-        newEvent = event(title, datetime(*date), description, timedelta())
+    # noticeTimeGap recibe una lista de este tipo: [días, horas, minutos]
+    def addNewEvent(self, title, date, description = None, noticeTimeGap = [0, 0, 15]):
+        newEvent = event(title, datetime(*date), description, timedelta(days = noticeTimeGap[0], hours = noticeTimeGap[1], minutes = noticeTimeGap[2]))
 
         if self.events == []:
             self.events.append(newEvent)
@@ -86,7 +86,7 @@ class eventManager():
 
     def getTimeToEvent(self, index):
         timeToEvent = self.events[index].date - datetime.now()
-        return timedelta(timeToEvent.days, (timeToEvent.seconds//60)*60)
+        return timedelta(days = timeToEvent.days, minutes = timeToEvent.seconds//60)
 
     def listEventsInRange(self, start, final):
         return self.events[self.searchIndexByDate(start):self.searchIndexByDate(final)]
@@ -104,7 +104,7 @@ class eventManager():
 
         return eventsInformation
 
-    def isTimeToEvent(self, event):
+    def isTimeToEvent(self):
         pass
 
 class event():
@@ -120,7 +120,7 @@ class event():
         dict = {'title': self.title,
                 'date': datetimeObjectToList(self.date),
                 'description': self.description,
-                'notice_time': self.noticeTimeGap,}
+                'notice_time': timedeltaObjectToList(self.noticeTimeGap),}
 
         return dict
 
