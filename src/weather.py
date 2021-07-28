@@ -36,16 +36,27 @@ class Weather:
             else:
                 print(f"Cannot update {request.status_code}")
 
+    def __getDailyReference(self, day = 0):
+        if day == 0:
+            ref = "is"
+        else:
+            utc = self.weatherForecast['timezone_offset'] / 3600
+            timestamp = self.weatherForecast['daily'][day]['dt']
+            day = datetime.fromtimestamp(timestamp).strftime("%A")
+            ref = f"on {day} will be"
+        
+        return ref
+
     def getTemperature(self, day = 0):
 
         if (day == 0):
             self.__updateWeather()
             temperature = int(self.currentWeather['main']['temp'])
             feelsLike = int(self.currentWeather['main']['feels_like'])
-            ref = "is"
         else:
             return "You cant get the current temperature of tomorrow, you ass"
         
+        ref = self.__getDailyReference(day)
         temperatureUnit = "degrees celsius" if temperature > 1 else "degree celsius"
 
         temperatueStr = f'For {self.cityName}, the temperature {ref} {temperature} {temperatureUnit} and feels like {feelsLike} {temperatureUnit}.'
@@ -58,23 +69,19 @@ class Weather:
             self.__updateWeather()
             minTemp = int(self.currentWeather['main']['temp_min'])
             maxTemp = int(self.currentWeather['main']['temp_max'])
-            ref = "is"
         else:
             self.__updateForecast()
             if 1 <= day <= 7:
                 minTemp = int(self.weatherForecast['daily'][day]['temp']['min'])
                 maxTemp = int(self.weatherForecast['daily'][day]['temp']['max'])
-                utc = self.weatherForecast['timezone_offset'] / 3600
-                timestamp = self.weatherForecast['daily'][day]['dt']
-                day = datetime.fromtimestamp(timestamp).strftime("%A")
-                ref = f"on {day} will be"
             else:
                 return "Day out of range"
 
+        ref = self.__getDailyReference(day)
         minTempUnit = "degrees celsius" if minTemp > 1 else "degree celsius"
         maxTempUnit = "degrees celsius" if maxTemp > 1 else "degree celsius"
 
-        minMaxTempStr = f'For {self.cityName}, the minimum temperature {ref} {minTemp} {minTempUnit} and the maximum temperature is {maxTemp} {maxTempUnit}.'
+        minMaxTempStr = f'For {self.cityName}, the minimum temperature {ref} {minTemp} {minTempUnit} and the maximum temperature {ref} {maxTemp} {maxTempUnit}.'
 
         return minMaxTempStr
 
@@ -85,19 +92,15 @@ class Weather:
             self.__updateWeather()
             windSpeed = self.currentWeather['wind']['speed']
             windDirection = compass_brackets[round(self.currentWeather['wind']['deg']/45)]
-            ref = "is"
         else:
             self.__updateForecast()
             if 1 <= day <= 7:
                 windSpeed = self.weatherForecast['daily'][day]['wind_speed']
                 windDirection = compass_brackets[round(self.weatherForecast['daily'][day]['wind_deg']/45)]
-                utc = self.weatherForecast['timezone_offset'] / 3600
-                timestamp = self.weatherForecast['daily'][day]['dt']
-                day = datetime.fromtimestamp(timestamp).strftime("%A")
-                ref = f"on {day} will be"
             else:
                 return "Day out of range"
 
+        ref = self.__getDailyReference(day)
         windSpeedUnit = "kilometers per hour" if windSpeed > 1 else "kilometer per hour"
 
         windStr = f'For {self.cityName}, the wind avarage speed {ref} {windSpeed} {windSpeedUnit} from the {windDirection}.'
@@ -112,13 +115,10 @@ class Weather:
             self.__updateForecast()
             if 1 <= day <= 7:
                 rainProbability = self.weatherForecast['daily'][day]['pop'] * 100
-                utc = self.weatherForecast['timezone_offset'] / 3600
-                timestamp = self.weatherForecast['daily'][day]['dt']
-                day = datetime.fromtimestamp(timestamp).strftime("%A")
-                ref = f"on {day} will be"
             else:
                 return "Day out of range"
 
+        ref = self.__getDailyReference(day)
         rainUnit = "percent"
 
         rainStr = f'For {self.cityName}, the rain chance {ref} {rainProbability} {rainUnit}.'
@@ -130,18 +130,14 @@ class Weather:
         if day == 0:
             self.__updateWeather()
             pressure = self.currentWeather['main']['pressure']
-            ref = "is"
         else:
             self.__updateForecast()
             if 1 <= day <= 7:
                 pressure = self.weatherForecast['daily'][day]['pressure']
-                utc = self.weatherForecast['timezone_offset'] / 3600
-                timestamp = self.weatherForecast['daily'][day]['dt']
-                day = datetime.fromtimestamp(timestamp).strftime("%A")
-                ref = f"on {day} will be"
             else:
                 return "Day out of range"
-
+        
+        ref = self.__getDailyReference(day)
         pressureUnit = "hectopascals" if pressure > 1 else "hectopascal"
 
         pressureStr = f'For {self.cityName}, the pressure {ref} {pressure} {pressureUnit}'
@@ -153,18 +149,14 @@ class Weather:
         if day == 0:
             self.__updateWeather()
             humidity = self.currentWeather['main']['humidity']
-            ref = "is"
         else:
             self.__updateForecast()
             if 1 <= day <= 7:
                 humidity = self.weatherForecast['daily'][day]['humidity']
-                utc = self.weatherForecast['timezone_offset'] / 3600
-                timestamp = self.weatherForecast['daily'][day]['dt']
-                day = datetime.fromtimestamp(timestamp).strftime("%A")
-                ref = f"on {day} will be"
             else:
                 return "Day out of range"
 
+        ref = self.__getDailyReference(day)
         humidityUnit = "percent"
 
         humidityStr = f'For {self.cityName}, the humidity {ref} {humidity} {humidityUnit}'
