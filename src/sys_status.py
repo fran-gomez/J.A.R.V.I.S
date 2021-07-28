@@ -7,6 +7,10 @@ class SystemStatus:
 
     def get_system_stats(self):
         running_since = psutil.boot_time()
+
+        report = f"System running since {running_since}"
+
+        return report
         
     def get_cpu_stats(self):
         cpu_usage = psutil.cpu_percent(percpu=True)
@@ -52,6 +56,6 @@ class SystemStatus:
 stats = SystemStatus()
 print(stats.get_cpu_stats())
 print(stats.get_memory_stats())
-print(stats.get_disk_stats())
+print(stats.get_disk_stats('/Library'))
 print(stats.get_battery_stats())
 print(stats.get_sensors_stats())
