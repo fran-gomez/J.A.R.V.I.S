@@ -40,7 +40,6 @@ class Weather:
         if day == 0:
             ref = "is"
         else:
-            utc = self.weatherForecast['timezone_offset'] / 3600
             timestamp = self.weatherForecast['daily'][day]['dt']
             day = datetime.fromtimestamp(timestamp).strftime("%A")
             ref = f"on {day} will be"
@@ -162,11 +161,3 @@ class Weather:
         humidityStr = f'For {self.cityName}, the humidity {ref} {humidity} {humidityUnit}'
 
         return humidityStr
-
-weather = Weather()
-print(weather.getTemperature(0))
-print(weather.getMinMaxTemperature(1))
-print(weather.getWindData(2))
-print(weather.getPressure(3))
-print(weather.getHumidity(4))
-print(weather.getRain(5))
