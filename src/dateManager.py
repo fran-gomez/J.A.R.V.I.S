@@ -7,12 +7,12 @@ class dateManager:
     def __init__(self):
         pass
 
-    def dateToStr(self, date):
+    def dateToStr(date):
         dateStr = date.strftime("%A, %B %d")
 
         return dateStr
 
-    def timeToStr(self, time):
+    def timeToStr(time):
         hour = time.hour
         min = time.minute
         timeStr = ''
@@ -27,14 +27,11 @@ class dateManager:
 
         return timeStr
 
-    def datetimeToStr(self, datetimeObj):
-        return self.dateToStr(datetimeObj) + ' at ' + self.timeToStr(datetimeObj)
+    def datetimeToStr(datetimeObj):
+        return dateManager.dateToStr(datetimeObj) + ' at ' + dateManager.timeToStr(datetimeObj)
 
-    def todayStr(self):
-        return 'Today is ' + self.dateToStr(datetime.today())
+    def todayStr():
+        return 'Today is ' + dateManager.dateToStr(datetime.today())
 
     def nowStr(self):
-        return 'It\'s ' + self.timeToStr(datetime.now())
-
-motor = dateManager()
-print(motor.datetimeToStr(datetime.now()))
+        return 'It\'s ' + dateManager.timeToStr(datetime.now())
