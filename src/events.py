@@ -4,6 +4,7 @@ import json
 from datetime import datetime, timedelta
 from dateManager import dateManager
 import mimic
+import time
 
 def datetimeObjectToList(datetimeObj):
     return [datetimeObj.year, datetimeObj.month, datetimeObj.day,
@@ -142,9 +143,12 @@ class eventManager():
         eventsToDelete = []
 
         for event in self.events:
+
+            event.getNextNotify()
+            print(datetime(*datetimeObjectToList(datetime.now())))
             if event.nextNotify == None:
                 eventsToDelete.append(event)
-            elif datetime.now() == event.nextNotify:
+            elif datetime(*datetimeObjectToList(datetime.now())) == event.nextNotify:
                 eventsToNotify.append(event)
             else:
                 break
@@ -166,19 +170,19 @@ class event():
         self.notifyTimeGap = notifyTimeGap
         self.notifyTime = date - notifyTimeGap
         self.notifyFrecuency = notifyFrecuency
-        self.nextNotify = self.getNextNotify()
+        self.nextNotify = self.notifyTime
+        self.getNextNotify()
 
     def getNextNotify(self):
-        diff = self.notifyTime - datetime.now()
-        nextNotify = self.notifyTime
+        diff = self.notifyTime - datetime(*datetimeObjectToList(datetime.now()))
 
         if diff < timedelta(0):
-            nextNotify = self.notifyTime + self.notifyFrecuency * (-diff//self.notifyFrecuency + 1)
+            self.nextNotify = self.notifyTime + self.notifyFrecuency * (-diff//self.notifyFrecuency + 1)
 
-        if nextNotify > self.date:
-            nextNotify = None
+        if self.nextNotify > self.date:
+            self.nextNotify = None
 
-        return nextNotify
+        print(self.nextNotify)
 
     def dumpDict(self):
         dict = {'title': self.title,
@@ -200,5 +204,9 @@ JARVISeventManager.addNewEvent('test', datetimeObjectToList(datetime.now()+timed
 JARVISeventManager.addNewEvent('test', datetimeObjectToList(datetime.now()+timedelta(minutes = 16)))
 JARVISeventManager.addNewEvent('test', datetimeObjectToList(datetime.now()+timedelta(days = 3)))
 #engine.say(*JARVISeventManager.getEventsInformationInRange(datetime.now(),datetime.now()+timedelta(days=3)))
-print(JARVISeventManager.checkNotifyEvents())
+
+while True:
+    JARVISeventManager.events[0].getNextNotify()
+    time.sleep(60)
+
 JARVISeventManager.dumpEvents()
