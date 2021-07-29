@@ -26,31 +26,42 @@ class eventManager():
         i = 0
         for event in self.events:
             if event.date - date >= timedelta(0):
-                break                    
+                break
             i += 1
 
         return i
 
-    def searchIndexByNoticeTime(self, noticeTime):
+    def searchIndexByNotifyTime(self, notifyTime):
         i = 0
         for event in self.events:
-            if event.noticeTime - noticeTime >= timedelta(0):
-                break                    
+            if event.notifyTime - notifyTime >= timedelta(0):
+                break
             i += 1
 
         return i
 
-    def addLoadedEvent(self, title, date, description, noticeTimeGap):
-        self.events.append(event(title, datetime(*date), description, noticeTimeGap))
+    def searchIndexByTitle(self, title):
+        i = 0
+        for event in self.events:
+            if event.title == title:
+                break
+            i += 1
 
-    # noticeTimeGap recibe una lista de este tipo: [días, horas, minutos]
-    def addNewEvent(self, title, date, description = None, noticeTimeGap = [0, 0, 15]):
-        newEvent = event(title, datetime(*date), description, timedelta(days = noticeTimeGap[0], hours = noticeTimeGap[1], minutes = noticeTimeGap[2]))
+        return i
+
+    # notifyTimeGap recibe una lista de este tipo: [días, horas, minutos]
+    def addNewEvent(self, title, date, description = None, notifyTimeGap = [0, 0, 15]):
+        notifyTimeGap = timedelta(days = notifyTimeGap[0], hours = notifyTimeGap[1], minutes = notifyTimeGap[2])
+        newEvent = event(title, datetime(*date), description, notifyTimeGap)
 
         if self.events == []:
             self.events.append(newEvent)
         else:
-            self.events.insert(self.searchIndexByNoticeTime(newEvent.noticeTime), newEvent)
+            self.events.insert(self.searchIndexByNotifyTime(newEvent.notifyTime), newEvent)
+
+    def addLoadedEvent(self, title, date, description, notifyTimeGap):
+        notifyTimeGap = timedelta(notifyTimeGap[0], notifyTimeGap[1])
+        self.events.append(event(title, datetime(*date), description, notifyTimeGap))
 
     def dumpEvents(self):
         
@@ -76,12 +87,12 @@ class eventManager():
             eventsDictList = json.loads(fileContent)
 
             for eventDict in eventsDictList:
-                self.addLoadedEvent(eventDict['title'], eventDict['date'], eventDict['description'], eventDict['notice_time'])
+                self.addLoadedEvent(eventDict['title'], eventDict['date'], eventDict['description'], eventDict['notify_time'])
 
-    def eraseEvent(self, index):
+    def deleteEvent(self, index):
         self.events.pop(index)
 
-    def eraseAllEvents(self):
+    def deleteAllEvents(self):
         self.events.clear()
 
     def getTimeToEvent(self, index):
@@ -90,6 +101,13 @@ class eventManager():
 
     def listEventsInRange(self, start, final):
         return self.events[self.searchIndexByDate(start):self.searchIndexByDate(final)]
+
+    def getEventInformation(self, event, returnDate = True):
+        eventInformation = [f'{event.title}']
+        if returnDate:
+            eventInformation.append(f'on {dateManager.datetimeToStr(event.date)}.')
+
+        return eventInformation
 
     def getEventsInformationInRange(self, start, final):
         listOfEvents = self.listEventsInRange(start, final)
@@ -100,37 +118,67 @@ class eventManager():
         else:
             eventsInformation.append('You have in your events list.')
             for event in listOfEvents:
-                eventsInformation + [f'{event.title}', f'on {dateManager.datetimeToStr(event.date)}.']
+                eventsInformation += self.getEventInformation(event)
 
         return eventsInformation
 
-    def isTimeToEvent(self):
-        pass
+    def checkNearEvents(self):
+        nearEvents = []
+        eventsToDelete = 0
+        i = 0
+
+        for event in self.events:
+            if event.notifyTime <= datetime.now() <= event.date:
+                nearEvents.append(event)
+            elif event.notifyTime < datetime.now():
+                eventsToDelete += 1
+            else:
+                break
+
+        while i < eventsToDelete:
+            self.deleteEvent(0)
+            i += 1
+
+        return nearEvents
+
+    def checkIfNotifyEvents(self):
+        events = self.checkNearEvents()
+        notifyEvents = None
+        if events != []:
+            notifyEvents = ['You have near events!']
+            for event in events:
+                notifyEvents += self.getEventInformation(event)
+
+        return notifyEvents
+
 
 class event():
 
-    def __init__(self, title, date, description, noticeTimeGap):
+    def __init__(self, title, date, description, notifyTimeGap):
         self.title = title
         self.date = date
         self.description = description
-        self.noticeTimeGap = noticeTimeGap
-        self.noticeTime = date - noticeTimeGap
+        self.notifyTimeGap = notifyTimeGap
+        self.notifyTime = date - notifyTimeGap
 
     def dumpDict(self):
         dict = {'title': self.title,
                 'date': datetimeObjectToList(self.date),
                 'description': self.description,
-                'notice_time': timedeltaObjectToList(self.noticeTimeGap),}
+                'notify_time': timedeltaObjectToList(self.notifyTimeGap),}
 
         return dict
 
 JARVISeventManager = eventManager('../data/events/events.json')
 engine = mimic.mimic()
 
-#JARVISeventManager.loadEvents()
-JARVISeventManager.eraseAllEvents()
-JARVISeventManager.addNewEvent('test', datetimeObjectToList(datetime.now()+timedelta(days = 1)))
-JARVISeventManager.addNewEvent('test', datetimeObjectToList(datetime.now()+timedelta(hours = 4)))
-JARVISeventManager.addNewEvent('test', datetimeObjectToList(datetime.now()+timedelta(days = 3)))
+JARVISeventManager.loadEvents()
+#JARVISeventManager.deleteAllEvents()
+#JARVISeventManager.addNewEvent('test', datetimeObjectToList(datetime.now()+timedelta(days = 1)))
+#JARVISeventManager.addNewEvent('test', datetimeObjectToList(datetime.now()+timedelta(minutes = 15)))
+#JARVISeventManager.addNewEvent('test', datetimeObjectToList(datetime.now()+timedelta(minutes = 15)))
+#JARVISeventManager.addNewEvent('test', datetimeObjectToList(datetime.now()+timedelta(minutes = 16)))
+#JARVISeventManager.addNewEvent('test', datetimeObjectToList(datetime.now()+timedelta(days = 3)))
 #engine.say(*JARVISeventManager.getEventsInformationInRange(datetime.now(),datetime.now()+timedelta(days=3)))
+engine.say(*JARVISeventManager.checkIfNotifyEvents())
 JARVISeventManager.dumpEvents()
