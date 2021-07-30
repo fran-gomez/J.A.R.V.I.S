@@ -1,0 +1,41 @@
+[gmail.com] 
+out_server = smtp.gmail.com
+in_server = imap.gmail.com
+out_port = 465
+in_port = 993
+
+[outlook.com] 
+out_server = smtp-mail.outlook.com
+in_server = imap-mail.outlook.com
+out_port = 587
+in_port = 993
+
+[hotmail.com]
+out_server = smtp-mail.outlook.com
+in_server = imap-mail.outlook.com
+out_port = 587
+in_port = 993
+
+[yahoo.com]
+out_server = smtp.mail.yahoo.com
+in_server = imap.yahoo.com
+out_port = 465
+in_port = 993
+
+[office365.com]
+out_server = smtp.office365.com
+in_server = imap.office365.com
+out_port = 587
+in_port = 993
+
+[aol.com]
+out_server = smtp.aol.com
+in_server = imap.aol.com
+out_port = 587
+in_port = 993
+
+[mail.com]
+out_server = smtp.mail.com
+in_server = imap.mail.com
+out_port = 587
+in_port = 993

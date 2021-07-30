@@ -1,7 +1,6 @@
-# -*- encoding: utf-8 -*-
-
 import requests
-from datetime import date, datetime, timedelta, timezone
+from datetime import datetime
+
 
 class Weather:
     
@@ -85,7 +84,9 @@ class Weather:
         return minMaxTempStr
 
     def getWindData(self, day = 0):
-        compass_brackets = ["North", "North East", "East", "South East", "South", "South West", "West", "North West", "Notrh"]
+        compass_brackets = ["North", "North East", "East", \
+                            "South East", "South", "South West", \
+                            "West", "North West", "Notrh"]
 
         if day == 0:
             self.__updateWeather()

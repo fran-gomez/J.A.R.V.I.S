@@ -1,6 +1,7 @@
 import platform
 import psutil
 
+
 class SystemStatus:
     def __init__(self) -> None:
         pass
@@ -53,9 +54,9 @@ class SystemStatus:
         
         return report
 
-stats = SystemStatus()
-print(stats.get_cpu_stats())
-print(stats.get_memory_stats())
-print(stats.get_disk_stats('/Library'))
-print(stats.get_battery_stats())
-print(stats.get_sensors_stats())
+# stats = SystemStatus()
+# print(stats.get_cpu_stats())
+# print(stats.get_memory_stats())
+# print(stats.get_disk_stats('/Library'))
+# print(stats.get_battery_stats())
+# print(stats.get_sensors_stats())
