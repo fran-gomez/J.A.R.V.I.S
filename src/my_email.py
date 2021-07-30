@@ -48,10 +48,7 @@ class EmailManager:
         
         return report
 
-    def getUnreadMails(self):
-        pass
-
-    def getUnreadMails(self, inbox):
+    def getUnreadMails(self, inbox = 'INBOX'):
         try:
             server = imaplib.IMAP4_SSL(self.in_server, self.in_port)
             server.login(self.email_address, self.email_password)
@@ -67,7 +64,7 @@ class EmailManager:
         
         return report
 
-    def getUnreadMailsFrom(self, inbox):
+    def getUnreadMailsFrom(self, inbox = 'INBOX'):
         try:
             server = imaplib.IMAP4_SSL(self.in_server, self.in_port)
             server.login(self.email_address, self.email_password)
