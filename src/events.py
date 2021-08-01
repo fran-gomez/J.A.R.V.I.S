@@ -2,29 +2,43 @@
 
 import json
 from datetime import datetime, timedelta
-from dateManager import dateManager
-import mimic
-import time
 
-def datetimeObjectToList(datetimeObj):
+
+from date_manager import DateManager
+import mimic
+
+
+def datetime_object_to_list(datetimeObj):
+    """Extracts the main datetime attributes to a list.
+    Ignores the seconds and microseconds.
+    """
     return [datetimeObj.year, datetimeObj.month, datetimeObj.day,
             datetimeObj.hour, datetimeObj.minute]
 
-def timedeltaObjectToList(timedeltaObj):
+def timedelta_object_to_list(timedeltaObj):
+    """Extracts the main timedelta attributes to a list.
+    Ignores the microseconds.
+    """
     return [timedeltaObj.days, timedeltaObj.seconds]
 
-class eventManager():
+
+class EventManager():
     
+    """An event manager implementation.
+    It provides a basic event management.
+    """
+
     def __init__(self, file):
         self.events = []
-        self.amountOfEvents = len(self.events)
         self.file = file
 
-    def deleteFileContent(self, file):
+    def _delete_file_content(self, file):
         with open(file, 'w'):
             pass
 
-    def searchIndexByDate(self, date):
+
+    # Search functions
+    def search_index_by_date(self, date):
         i = 0
         for event in self.events:
             if event.date - date >= timedelta(0):
@@ -33,7 +47,7 @@ class eventManager():
 
         return i
 
-    def searchIndexByNotifyTime(self, notifyTime):
+    def search_index_by_notify_time(self, notifyTime):
         i = 0
         for event in self.events:
             if event.notifyTime - notifyTime >= timedelta(0):
@@ -42,7 +56,7 @@ class eventManager():
 
         return i
 
-    def searchIndexByTitle(self, title):
+    def search_index_by_title(self, title):
         i = 0
         for event in self.events:
             if event.title == title:
@@ -51,43 +65,58 @@ class eventManager():
 
         return i
 
-    # notifyTimeGap y notifyFrecuency reciben una lista de este tipo: [días, horas, minutos]
-    def addNewEvent(self, title, date, description = None,
-                    notifyTimeGap = [0, 0, 15], notifyFrecuency = [0, 0, 5]):
 
+    # Event management section
+
+    # notifyTimeGap recieves a list of this type: [days, hours, minutes]
+    def add_new_event(self, title, date, description = None,
+                      notifyTimeGap = [0, 0, 15]):
+        """Adds a new event to the event manager list.
+        It recieves the same parameters as the event class recieve.
+        """
         notifyTimeGap = timedelta(days = notifyTimeGap[0],
                                   hours = notifyTimeGap[1],
-                                  minutes = notifyTimeGap[2])
+                                  minutes = notifyTimeGap[2],
+                                  )
 
-        notifyFrecuency = timedelta(days = notifyFrecuency[0],
-                                    hours = notifyFrecuency[1],
-                                    minutes = notifyFrecuency[2])
-
-        newEvent = event(title, datetime(*date), description, notifyTimeGap, notifyFrecuency)
+        newEvent = Event(title, datetime(*date), description, notifyTimeGap)
 
         if self.events == []:
             self.events.append(newEvent)
         else:
-            self.events.insert(self.searchIndexByNotifyTime(newEvent.notifyTime), newEvent)
+            self.events.insert(
+                self.search_index_by_notify_time(newEvent.notifyTime),
+                newEvent,
+            )
 
-    def addLoadedEvent(self, title, date, description, notifyTimeGap, notifyFrecuency):
-        self.events.append(event(title, datetime(*date), description,
-                                timedelta(*notifyTimeGap), timedelta(*notifyFrecuency)))
 
-    def dumpEvents(self):
-        
+    def _add_loaded_event(self, title, date, description, notifyTimeGap):
+        """Loads an event to the event manager list.
+        Its use is specific to work with the load_events method.
+        """
+        self.events.append(Event(title, datetime(*date),
+                                 description, timedelta(*notifyTimeGap)))
+
+    def dump_events(self):
+        """Dumps the event manager list of events to a json file.
+        It uses the self.file variable.
+        """
         if self.events != []:    
             eventDictList = []
 
             for event in self.events:
-                eventDictList.append(event.dumpDict())
+                eventDictList.append(event.dump_dict())
 
             with open(self.file, 'w') as eventsFile:
                 eventsFile.write(json.dumps(eventDictList, indent = 4))
         else:
-            self.deleteFileContent(self.file)
+            self.delete_file_content(self.file)
 
-    def loadEvents(self):
+    def load_events(self):
+        """Reads the json file with the saved events.
+        Calls the _add_loaded_event method to add 
+        them to the event manager list.
+        """
         eventsDictList = None
         fileContent = None
 
@@ -98,115 +127,119 @@ class eventManager():
             eventsDictList = json.loads(fileContent)
 
             for eventDict in eventsDictList:
-                self.addLoadedEvent(eventDict['title'],
+                self._add_loaded_event(eventDict['title'],
                                     eventDict['date'],
                                     eventDict['description'],
                                     eventDict['notify_time'],
-                                    eventDict['notify_frecuency'])
+                                )
 
-    def deleteEvent(self, index):
+    def delete_event(self, index):
         self.events.pop(index)
 
-    def deleteAllEvents(self):
+    def delete_all_events(self):
         self.events.clear()
 
-    def getTimeToEvent(self, index):
+    def get_time_to_event(self, index):
         timeToEvent = self.events[index].date - datetime.now()
-        return timedelta(days = timeToEvent.days, minutes = timeToEvent.seconds//60)
+        return timedelta(days = timeToEvent.days,
+                         minutes = timeToEvent.seconds//60)
 
-    def listEventsInRange(self, start, final):
-        return self.events[self.searchIndexByDate(start):self.searchIndexByDate(final)]
+    def get_amout_of_events(self):
+        return len(self.events)
 
-    def getEventInformation(self, event, returnDate = True):
+    def list_events_in_range(self, start, final):
+        """Returns a list of the events objects in the
+        event manager between start and final dates.
+        """
+        return self.events[self.search_index_by_date(start):self.search_index_by_date(final)]
+
+    def get_event_information(self, event, returnDate = True):
+        """Gets basic infomation of an event.
+        Always return the title, but only returns the date if returnDate is True.
+        By default returnDate is True.
+        """
         eventInformation = [f'{event.title}']
         if returnDate:
-            eventInformation.append(f'on {dateManager.datetimeToStr(event.date)}.')
+            eventInformation.append(f'on {DateManager.datetime_to_str(event.date)}.')
 
         return eventInformation
 
-    def getEventsInformationInRange(self, start, final):
-        listOfEvents = self.listEventsInRange(start, final)
-        eventsInformation = [f'From {dateManager.datetimeToStr(start)}',
-                            'to', f'{dateManager.datetimeToStr(final)}.']
+    def get_events_information_in_range(self, start, final):
+        """Returns a list of strings with the output of
+        get_event_information of the events between the
+        start and final date.
+        """
+        listOfEvents = self.list_events_in_range(start, final)
+        eventsInformation = [f'From {DateManager.datetime_to_str(start)}',
+                            'to', f'{DateManager.datetime_to_str(final)}.']
 
         if listOfEvents == []:
-            eventsInformation.append('You don\'t have nothing to do.')
+            eventsInformation.append("You don't have nothing to do.")
         else:
-            eventsInformation.append('You have in your events list.')
+            eventsInformation.append('You have this events.')
             for event in listOfEvents:
-                eventsInformation += self.getEventInformation(event)
+                eventsInformation += self.get_event_information(event)
 
         return eventsInformation
 
+    # Current working section
+
     def checkNotifyEvents(self):
         eventsToNotify = []
-        eventsToDelete = []
+        oneMoreTime = False
+        now = datetime(*datetime_object_to_list(datetime.now()))
 
         for event in self.events:
-
-            event.getNextNotify()
-            print(datetime(*datetimeObjectToList(datetime.now())))
-            if event.nextNotify == None:
-                eventsToDelete.append(event)
-            elif datetime(*datetimeObjectToList(datetime.now())) == event.nextNotify:
+            if  event.notifyTime < now < event.date:
                 eventsToNotify.append(event)
-            else:
+                oneMoreTime = True
+            elif not oneMoreTime:
+                oneMoreTime = False
                 break
 
-        for event in eventsToDelete:
-            self.deleteEvent(0)
-        
         return eventsToNotify
+
+    def checkPastEvents(self):
+        pass
 
     def notifyEvents(self):
         pass
 
-class event():
 
-    def __init__(self, title, date, description, notifyTimeGap, notifyFrecuency):
+class Event():
+
+    """Class for events objects."""
+
+    def __init__(self, title, date, description, notifyTimeGap):
         self.title = title
         self.date = date
         self.description = description
         self.notifyTimeGap = notifyTimeGap
         self.notifyTime = date - notifyTimeGap
-        self.notifyFrecuency = notifyFrecuency
-        self.nextNotify = self.notifyTime
-        self.getNextNotify()
 
-    def getNextNotify(self):
-        diff = self.notifyTime - datetime(*datetimeObjectToList(datetime.now()))
-
-        if diff < timedelta(0):
-            self.nextNotify = self.notifyTime + self.notifyFrecuency * (-diff//self.notifyFrecuency + 1)
-
-        if self.nextNotify > self.date:
-            self.nextNotify = None
-
-        print(self.nextNotify)
-
-    def dumpDict(self):
+    def dump_dict(self):
+        """Returns a dictionary with the attributes of the object.
+        Its propuse is to work with the event manager dump_events method.
+        """
         dict = {'title': self.title,
-                'date': datetimeObjectToList(self.date),
+                'date': datetime_object_to_list(self.date),
                 'description': self.description,
-                'notify_time': timedeltaObjectToList(self.notifyTimeGap),
-                'notify_frecuency': timedeltaObjectToList(self.notifyFrecuency)}
+                'notify_time': timedelta_object_to_list(self.notifyTimeGap),
+            }
 
         return dict
 
-JARVISeventManager = eventManager('../data/events/events.json')
+
+JARVISeventManager = EventManager('../data/events/events.json')
 engine = mimic.mimic()
 
-JARVISeventManager.loadEvents()
-JARVISeventManager.deleteAllEvents()
-JARVISeventManager.addNewEvent('test', datetimeObjectToList(datetime.now()+timedelta(days = 1)))
-JARVISeventManager.addNewEvent('test', datetimeObjectToList(datetime.now()+timedelta(minutes = 15)))
-JARVISeventManager.addNewEvent('test', datetimeObjectToList(datetime.now()+timedelta(minutes = 15)))
-JARVISeventManager.addNewEvent('test', datetimeObjectToList(datetime.now()+timedelta(minutes = 16)))
-JARVISeventManager.addNewEvent('test', datetimeObjectToList(datetime.now()+timedelta(days = 3)))
-#engine.say(*JARVISeventManager.getEventsInformationInRange(datetime.now(),datetime.now()+timedelta(days=3)))
+JARVISeventManager.load_events()
+JARVISeventManager.delete_all_events()
+JARVISeventManager.add_new_event('test', datetime_object_to_list(datetime.now()+timedelta(minutes = 5)))
+JARVISeventManager.add_new_event('test', datetime_object_to_list(datetime.now()+timedelta(minutes = 15)))
+JARVISeventManager.add_new_event('test', datetime_object_to_list(datetime.now()+timedelta(minutes = 15)))
+JARVISeventManager.add_new_event('test', datetime_object_to_list(datetime.now()+timedelta(minutes = 16)))
+JARVISeventManager.add_new_event('test', datetime_object_to_list(datetime.now()+timedelta(days = 3)))
+#engine.say(*JARVISeventManager.get_events_information_in_range(datetime.now(),datetime.now()+timedelta(days=3)))
 
-while True:
-    JARVISeventManager.events[0].getNextNotify()
-    time.sleep(60)
-
-JARVISeventManager.dumpEvents()
+JARVISeventManager.dump_events()
