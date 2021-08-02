@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 
 
 class DateManager:
@@ -9,8 +9,8 @@ class DateManager:
     @classmethod
     def date_to_str(cls, date):
         """Returns a date as a string from a datetime object."""
-        dateStr = date.strftime("%A, %B %d")
-        return dateStr
+        date_str = date.strftime("%A, %B %d")
+        return date_str
 
     @classmethod
     def time_to_str(cls, time):
@@ -19,34 +19,36 @@ class DateManager:
         """
         hour = time.hour
         min = time.minute
-        timeStr = ''
+        time_str = ''
 
         if min == 0:
-            timeStr += f'{hour} oh clock'
+            time_str += f'{hour} oh clock'
         elif 0 < min <= 30:
-            timeStr += f'{min} past {hour}'
+            time_str += f'{min} past {hour}'
         elif 30 < min <= 59:
             remains = 60-min
-            timeStr += f'{remains} to {hour+1}'
+            time_str += f'{remains} to {hour+1}'
 
-        return timeStr
+        return time_str
 
 
     # Specific methods, built on the base ones.
     @classmethod
-    def datetime_to_str(cls, datetimeObj):
+    def datetime_to_str(cls, datetime_obj):
         """Returns a complete datetime object transformed into a string
         using the date_to_str and time_to_str class methods.
         """
-        return cls.date_to_str(datetimeObj) + ' at ' \
-            + cls.time_to_str(datetimeObj)
+        return ''.join([cls.date_to_str(datetime_obj), ' at ',
+                        cls.time_to_str(datetime_obj)])
 
     @classmethod
     def today_str(cls):
         """Returns a string expressing the current day."""
-        return 'Today is ' + cls.date_to_str(datetime.today())
+        return f'Today is {cls.date_to_str(datetime.today())}'
 
     @classmethod
     def now_str(cls):
         """Returns a string expressing the current time"""
-        return 'It\'s ' + cls.time_to_str(datetime.now())
+        return f'It\'s {cls.time_to_str(datetime.now())}'
+
+print(DateManager.datetime_to_str(datetime.now()))

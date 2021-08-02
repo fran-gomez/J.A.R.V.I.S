@@ -24,7 +24,7 @@ class EmailManager:
         self.in_server = servers.get(domain_name, 'in_server')
         self.in_port = servers.get(domain_name, 'in_port')
         
-    def sendMail(self, to, subject, message, attachments = None):
+    def send_mail(self, to, subject, message, attachments = None):
         try:
             server = smtplib.SMTP_SSL(host = self.out_server, port = self.out_port)
             # server.set_debuglevel(1)
@@ -48,7 +48,7 @@ class EmailManager:
         
         return report
 
-    def getUnreadMails(self, inbox = 'INBOX'):
+    def get_unread_mails(self, inbox = 'INBOX'):
         try:
             server = imaplib.IMAP4_SSL(self.in_server, self.in_port)
             server.login(self.email_address, self.email_password)
@@ -64,7 +64,7 @@ class EmailManager:
         
         return report
 
-    def getUnreadMailsFrom(self, inbox = 'INBOX'):
+    def get_unread_mails_from(self, inbox = 'INBOX'):
         try:
             server = imaplib.IMAP4_SSL(self.in_server, self.in_port)
             server.login(self.email_address, self.email_password)
@@ -90,7 +90,7 @@ class EmailManager:
         
         return report
 
-# mailBox = EmailManager()
-# print(mailBox.sendMail(["fgvolonterio@icloud.com",  "fgvolonterio@gmail.com"], "Test mail", "This is a test mail sent from python"))
-# print(mailBox.getUnreadMails('INBOX'))
-# print(mailBox.getUnreadMailsFrom('INBOX'))
+# mail_box = EmailManager()
+# print(mail_box.send_mail(["fgvolonterio@icloud.com",  "fgvolonterio@gmail.com"], "Test mail", "This is a test mail sent from python"))
+# print(mail_box.get_unread_mails('INBOX'))
+# print(mail_box.get_unread_mails_from('INBOX'))
