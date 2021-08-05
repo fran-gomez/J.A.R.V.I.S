@@ -24,7 +24,7 @@ class EmailManager:
         self.in_server = servers.get(domain_name, 'in_server')
         self.in_port = servers.get(domain_name, 'in_port')
         
-    def send_mail(self, to, subject, message, attachments = None):
+    def sendMail(self, to, subject, message, attachments = None):
         try:
             server = smtplib.SMTP_SSL(host = self.out_server, port = self.out_port)
             # server.set_debuglevel(1)
@@ -39,16 +39,17 @@ class EmailManager:
                 msg['To'] = address
                 server.send_message(msg, self.email_address, address)
                 report.append(f"Message to {address} sent")
-        except smtplib.SMTPAuthenticationError:
+        except smtplib.SMTPAuthenticationError as err:
             report = "Incorrect user or password"
-        except smtplib.SMTPRecipientsRefused:
+            print(err)
+        except smtplib.SMTPRecipientsRefused as err:
             report = f"Recipient {msg['To']} refused"
         finally:
             server.quit()
         
         return report
 
-    def get_unread_mails(self, inbox = 'INBOX'):
+    def getUnreadMails(self, inbox = 'INBOX'):
         try:
             server = imaplib.IMAP4_SSL(self.in_server, self.in_port)
             server.login(self.email_address, self.email_password)
@@ -59,12 +60,13 @@ class EmailManager:
                 code, result = server.search(None, '(UNSEEN)')
                 unread = len(result[0].split())
                 report = f"You have {unread} unread emails in your inbox {inbox}"
-        except Exception as err:
+        except imaplib.IMAP4_SSL.error as err:
             report = "Something wrong happen'd, may God help us!"
+            print(err)
         
         return report
 
-    def get_unread_mails_from(self, inbox = 'INBOX'):
+    def getUnreadMailsFrom(self, inbox = 'INBOX'):
         try:
             server = imaplib.IMAP4_SSL(self.in_server, self.in_port)
             server.login(self.email_address, self.email_password)
@@ -85,12 +87,13 @@ class EmailManager:
                         msg = parser.parsebytes(data[0][1], True)
                         text, _ = email.header.decode_header(msg['subject'])[0]
                         report.append(f"{msg['subject']} from {msg['from'].split('<')[0]}")
-        except Exception as err:
+        except imaplib.IMAP4_SSL.error as err:
             report = "Se produjo un error en la autenticacion"
+            print(err)
         
         return report
 
-# mail_box = EmailManager()
-# print(mail_box.send_mail(["fgvolonterio@icloud.com",  "fgvolonterio@gmail.com"], "Test mail", "This is a test mail sent from python"))
-# print(mail_box.get_unread_mails('INBOX'))
-# print(mail_box.get_unread_mails_from('INBOX'))
+# mailBox = EmailManager()
+# print(mailBox.sendMail(["fgvolonterio@icloud.com",  "fgvolonterio@gmail.com"], "Test mail", "This is a test mail sent from python"))
+# print(mailBox.getUnreadMails('INBOX'))
+# print(mailBox.getUnreadMailsFrom('INBOX'))
