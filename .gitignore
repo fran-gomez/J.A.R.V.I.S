@@ -1,3 +1,4 @@
 /.DS_Store
 *.pyc
 data/email/account.txt
+data/events/events.json
