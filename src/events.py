@@ -144,65 +144,80 @@ class EventManager():
     def get_amout_of_events(self):
         return len(self.events)
 
-    def list_events_in_range(self, start, final):
-        """Returns a list of the events objects in the
-        event manager between start and final dates.
-        """
-        return self.events[self.search_index_by_date(start):
-                           self.search_index_by_date(final)]
-
-    def get_event_information(self, event, return_date = True):
+    def get_event_information(self, event, return_date = True, return_description = False):
         """Gets basic infomation of an event. Always return the title,
         but only returns the date if return_date is True.
         Which by default is True.
         """
         event_information = [f'{event.title}']
+
+        if return_description:
+            event_information.append(event.description)
+
         if return_date:
             date_str = f'on {DateManager.datetime_to_str(event.date)}.'
             event_information.append(date_str)
 
         return event_information
 
-    def get_events_information_in_range(self, start, final):
+    def get_events_information_range(self, start_date, final_date):
         """Returns a list of strings with the output of
         get_event_information of the events between the
         start and final date.
         """
-        list_of_events = self.list_events_in_range(start, final)
-        events_information = [f'From {DateManager.datetime_to_str(start)}',
-                            'to', f'{DateManager.datetime_to_str(final)}.']
 
-        if list_of_events == []:
+        start_index = self.search_index_by_date(start_date)
+        final_index = self.search_index_by_date(final_date)
+
+        events_information = [f'From {DateManager.datetime_to_str(start_date)}',
+                            'to', f'{DateManager.datetime_to_str(final_date)}.']
+
+        if start_index == None and final_index == None:
             events_information.append("You don't have nothing to do.")
+        elif start_index == None or final_index == None:
+            events_information.append("An error occurred.")
         else:
             events_information.append('You have this events.')
-            for event in list_of_events:
+            for event in self.events[start_index:final_index]:
                 events_information += self.get_event_information(event)
 
         return events_information
 
+
     # Current working section
 
-    def checkNotifyEvents(self):
-        eventsToNotify = []
-        oneMoreTime = False
+    def check_notify_events(self):
+        last_event_to_notify = 0
+        one_more_time = False
         now = datetime(*datetime_object_to_list(datetime.now()))
+        i = 0
 
         for event in self.events:
             if  event.notify_time < now < event.date:
-                eventsToNotify.append(event)
-                oneMoreTime = True
-            elif not oneMoreTime:
-                oneMoreTime = False
+                last_event_to_notify = i
+                one_more_time = True
+                i += 1 
+            elif not one_more_time:
                 break
 
-        return eventsToNotify
+        return last_event_to_notify
 
-    def checkPastEvents(self):
+    def check_past_events(self):
         pass
 
-    def notifyEvents(self):
-        pass
+    def notify_events(self):
+        
+        notify = []
+        last_event_to_notify = self.check_notify_events()
+
+        if self.events[:last_event_to_notify + 1] == []:
+            notify.append(None)
+        else:
+            notify.append('You have near events.')
+            for event in self.events[:last_event_to_notify + 1]:
+                notify.extend(self.get_event_information(event))
+
+        return notify
 
 
 class Event():
@@ -230,15 +245,16 @@ class Event():
 
 
 JARVISeventManager = EventManager('../data/events/events.json')
-engine = mimic.mimic()
+engine = mimic.Mimic()
 
 JARVISeventManager.load_events()
-JARVISeventManager.delete_all_events()
+""" JARVISeventManager.delete_all_events()
 JARVISeventManager.add_new_event('test', datetime_object_to_list(datetime.now()+timedelta(minutes = 5)))
 JARVISeventManager.add_new_event('test', datetime_object_to_list(datetime.now()+timedelta(minutes = 15)))
 JARVISeventManager.add_new_event('test', datetime_object_to_list(datetime.now()+timedelta(minutes = 15)))
 JARVISeventManager.add_new_event('test', datetime_object_to_list(datetime.now()+timedelta(minutes = 16)))
-JARVISeventManager.add_new_event('test', datetime_object_to_list(datetime.now()+timedelta(days = 3)))
-#engine.say(*JARVISeventManager.get_events_information_in_range(datetime.now(),datetime.now()+timedelta(days=3)))
+JARVISeventManager.add_new_event('test', datetime_object_to_list(datetime.now()+timedelta(days = 3))) """
+print(JARVISeventManager.notify_events())
+engine.say(*JARVISeventManager.notify_events())
 
 JARVISeventManager.dump_events()
